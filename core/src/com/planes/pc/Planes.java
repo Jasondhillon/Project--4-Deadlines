@@ -55,25 +55,6 @@ public class Planes extends Game implements Serializable{
 			airportData = new ArrayList<Data>();
 			airportData.add(new Data(50000, new ArrayList<Plane>()));
 			getAirportsJson();
-//			airportData.add(new Data("MCO", "05_background.png", "America/New_York", 5000, false, 800, 830));
-//			airportData.add(new Data("MIA", "05_background.png", "America/New_York", 5000, false, 805, 810));
-//			airportData.add(new Data("EWR", "02_background.png", "America/New_York", 5000, false, 836, 934));
-//			airportData.add(new Data("BOS", "02_background.png", "America/New_York", 5000, false, 886, 956));
-//			airportData.add(new Data("ATL", "02_background.png", "America/New_York", 5000, false, 788, 889));
-//			airportData.add(new Data("DTW", "03_background.png", "America/New_York", 5000, false, 755, 975));
-//			airportData.add(new Data("PIT", "13_background.png", "America/New_York", 5000, false, 794, 952));
-//
-//			airportData.add(new Data("IAH", "10_background.png", "America/Chicago", 5000, false, 690, 856));
-//			airportData.add(new Data("MEM", "10_background.png", "America/Chicago", 5000, false, 717, 902));
-//			airportData.add(new Data("MSP", "10_background.png", "America/Chicago", 5000, false, 700, 1002));
-//			airportData.add(new Data("STL", "10_background.png", "America/Chicago", 5000, false, 710, 932));
-//
-//			airportData.add(new Data("DEN", "10_background.png", "America/Denver", 5000, false, 621, 946));
-//
-//			airportData.add(new Data("LAX", "10_background.png", "America/Los_Angeles", 5000, false, 533, 879));
-//			airportData.add(new Data("LAS", "10_background.png", "America/Los_Angeles", 5000, false, 567, 897));
-//			airportData.add(new Data("SAN", "10_background.png", "America/Los_Angeles", 5000, false, 548, 852));
-//			airportData.add(new Data("SFO", "10_background.png", "America/Los_Angeles", 5000, false, 504, 928));
 
 		}else{
 			airportData = SerializationRead();
@@ -198,8 +179,8 @@ public class Planes extends Game implements Serializable{
 	private void getPlanesJson() {
 		JsonValue jsonFile = new JsonReader().parse( Gdx.files.internal("planes/planeInfo.json"));
 		for(int i = 1; i<=jsonFile.size; i++) {
-			System.out.println(i + "\n"+ jsonFile.get(i-1).get(1).toString() + "\n"  + jsonFile.get(i-1).getInt(2) + "\n" + jsonFile.get(i-1).getInt(3));
-			planesData.add(new Plane(jsonFile.get(i-1).get(1).toString(), i, jsonFile.get(i-1).getInt(2), jsonFile.get(i-1).getInt(3), "hangar", 0, 0));
+			//System.out.println(i + "\n"+ jsonFile.get(i-1).get(1).toString() + "\n"  + jsonFile.get(i-1).getInt(2) + "\n" + jsonFile.get(i-1).getInt(3));
+			planesData.add(new Plane(jsonFile.get(i-1).get(1).toString(), i, jsonFile.get(i-1).getInt(2), jsonFile.get(i-1).getInt(3), null , 0, 0));
 		}
 	}
 	

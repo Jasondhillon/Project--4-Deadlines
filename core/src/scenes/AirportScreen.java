@@ -128,11 +128,8 @@ public class AirportScreen implements Screen{
 		Gdx.input.setInputProcessor(Ui);
 
 		//Background
-		System.out.println(timeZone);
 		ZonedDateTime temp = ZonedDateTime.now(ZoneId.of(timeZone));
-		System.out.println(temp);
 		if(temp.getHour()>=20 || temp.getHour()<8) {
-			System.out.println(texturePath_night);
 			background = new Texture(texturePath_night);
 		}else {
 			background = new Texture(texturePath);
@@ -187,7 +184,6 @@ public class AirportScreen implements Screen{
 	public void setAirport(Airport airport) {
 		texturePath = "backgrounds/" + airport.getLocation();
 		texturePath_night = texturePath.substring(0, texturePath.length()-4) + "_night.png";
-		System.out.println(texturePath_night);
 		airportName.setText(airport.getName());
 		timeZone = airport.getTimeZone();
 	}

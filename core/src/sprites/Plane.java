@@ -10,11 +10,12 @@ public class Plane extends Sprite implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = -541541953842841624L;
-	String name, location;
+	String name;
+	Airport location;
 	int number, speed, price, posX, posY;
 	ArrayList<Airport> destination;
 	
-	public Plane(String name, int number, int speed, int price, String location, int posX, int posY) {
+	public Plane(String name, int number, int speed, int price, Airport location, int posX, int posY) {
 		this.name = name;
 		this.number = number;
 		this.speed = speed;
@@ -63,6 +64,38 @@ public class Plane extends Sprite implements Serializable{
 
 	public void setPrice(int price) {
 		this.price = price;
+	}
+	
+	public void setLocation(Airport location) {
+		this.location = location;
+	}
+
+	public Airport getLocation() {
+		return location;
+	}
+	
+	public void setPosX(int posX) {
+		this.posX = posX;
+	}
+
+	public int getPosX() {
+		return posX;
+	}
+
+	public void setPosY(int posY) {
+		this.posY = posY;
+	}
+	
+	public int getPosY() {
+		return posY;
+	}
+	
+	public void setDestination(ArrayList<Airport> destination) {
+		this.destination = destination;
+	}
+
+	public ArrayList<Airport> getDestination() {
+		return destination;
 	}
 
 	@Override

@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -34,11 +33,13 @@ import com.planes.pc.Planes;
 
 import data.Data;
 import sprites.Airport;
+import sprites.Plane;
 
 public class MapScreen implements Screen, InputProcessor{
 
 	//Game assets
 	private Planes game;
+	private Plane currentPlane;
 	private Texture map;
 	private ArrayList<Data> airportData;
 	private ArrayList<Airport> airports;
@@ -224,6 +225,7 @@ public class MapScreen implements Screen, InputProcessor{
 	@Override
 	public void hide() {
 		setPlacePlaneMode(false);
+		currentPlane = null;
 	}
 	//Used to dispose of elements, especially textures
 	@Override
@@ -253,19 +255,19 @@ public class MapScreen implements Screen, InputProcessor{
 				if(a.isBought()) {
 
 					if(placePlaneMode == false) {
-						//Set the airportScreen to the selected airport
-						game.getAirportScreen().setAirport(a);
-						//Switch screens
-						game.setScreen(game.getAirportScreen());
+						game.getAirportScreen().setAirport(a); //Set the airportScreen to the selected airport
+						game.setScreen(game.getAirportScreen()); //Switch screens
 					}else{
 						game.getAirportScreen().setAirport(a);
+						currentPlane.setLocation(a);
+						//TODO: Debugging
+						System.out.println(currentPlane.getName() + " is now in " + a.getName());
 						game.setScreen(game.getAirportScreen());
 					}
 				}else{
 					if(placePlaneMode == false) {
 						selectedAirport = a;
-						//Create the buy airport dialog
-						createBuyDialog();
+						createBuyDialog(); //Create the buy airport dialog
 					}
 
 				}
@@ -528,6 +530,10 @@ public class MapScreen implements Screen, InputProcessor{
 	//TODO: Displays the plane flying on the map
 	public void createPlaneTracker(Plane plane) {
 		
+	}
+	
+	public void setCurrentPlane(Plane currentPlane) {
+		this.currentPlane = currentPlane;
 	}
 	
 	public void setPlacePlaneMode(boolean mode) {
