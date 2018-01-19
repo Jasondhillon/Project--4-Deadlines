@@ -20,8 +20,8 @@ public class Airport extends Sprite implements Serializable{
 	private ArrayList<Plane> planes;
 
 	public Airport(String name, String location, String timeZone, int price, boolean isBought, float x, float y) {
-		super(new Texture("citydot_c1.png"));
-		if(isBought)this.setTexture(new Texture("citydot_c2.png"));
+		super(new Texture("ui/citydot_c1.png"));
+		if(isBought)this.setTexture(new Texture("ui/citydot_c2.png"));
 		this.name = name;
 		this.location = location;
 		this.timeZone = timeZone;

@@ -25,6 +25,7 @@ import data.Data;
 public class MenuScreen implements Screen{
 	private Planes game;
 	private Stage Ui;
+	private Image background;
 	private ArrayList<Data> data;
 	private Label moneyLabel;
 
@@ -32,6 +33,7 @@ public class MenuScreen implements Screen{
 		this.game = game;
 		this.data = data;
 		Ui = new Stage();
+		
 
 		//Back Button
 		TextureRegionDrawable menuButtonTexture = game.createTextureRegionDrawable("ui/menu_close.png", 100, 100);
@@ -102,6 +104,11 @@ public class MenuScreen implements Screen{
 		bar.setScaleY(5f);
 		bar.setPosition(0, -5);
 		
+		//Create background
+		background = new Image(new Texture("ui/background169.png"));
+		background.setScale(5f);
+		
+		Ui.addActor(background);
 		Ui.addActor(bar);
 		Ui.addActor(coin);
 		Ui.addActor(moneyLabel);
@@ -110,7 +117,7 @@ public class MenuScreen implements Screen{
 		Ui.addActor(menuButton);
 		Ui.addActor(mapButton);
 		Ui.addActor(flightsButton);
-
+		
 
 	}
 
@@ -121,13 +128,14 @@ public class MenuScreen implements Screen{
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClearColor(.039f, .107f, .219f, 1); //Sets the background color
+		Gdx.gl.glClearColor(0, 0, 0, 1); //Sets the background color
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); //Clears the screen
-
+		
 		Ui.draw();
-		moneyLabel.setText(data.get(0).getMoney() + "");
 		game.getBatch().begin();
 		game.getBatch().end();
+		moneyLabel.setText(data.get(0).getMoney() + "");
+
 	}
 
 	@Override

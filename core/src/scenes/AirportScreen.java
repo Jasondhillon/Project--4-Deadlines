@@ -145,8 +145,8 @@ public class AirportScreen implements Screen{
 		}
 		moneyLabel.setText(data.get(0).getMoney() + "");
 		tarmac = new Texture("backgrounds/airport1_tarmac.png");
-		building = new Texture("airport3_base.png");
-		seats = new Texture("airport3_seats.png");
+		building = new Texture("backgrounds/airport3_base.png");
+		seats = new Texture("backgrounds/airport3_seats.png");
 
 
 	}

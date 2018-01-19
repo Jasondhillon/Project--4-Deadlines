@@ -99,6 +99,7 @@ public class MapScreen implements Screen, InputProcessor{
 		for(Data a : data) {
 			if(a.getMoney() == -1) airports.add(a.createAirport());
 		}
+		
 
 		//Menu Button
 		TextureRegionDrawable menuButtonTexture = game.createTextureRegionDrawable("ui/menu_button.png", 100, 100);
