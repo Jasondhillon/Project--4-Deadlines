@@ -223,6 +223,7 @@ public class FlightsScreen implements Screen{
 						public void clicked(InputEvent event, float x, float y) {
 							DataTextButton temp = (DataTextButton) event.getListenerActor();
 							game.getAirportScreen().setAirport(temp.getPlane().getLocation());
+							game.getAirportScreen().setPlane(temp.getPlane());
 							game.setScreen(game.getAirportScreen());
 						}
 						

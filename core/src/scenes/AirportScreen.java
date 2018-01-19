@@ -24,9 +24,11 @@ import com.planes.pc.Planes;
 
 import data.Data;
 import sprites.Airport;
+import sprites.Plane;
 
 public class AirportScreen implements Screen{
 	private Planes game;
+	private Plane currentPlane;
 	private Stage Ui;
 	private ArrayList<Data> data;
 	private OrthographicCamera camera;
@@ -38,10 +40,14 @@ public class AirportScreen implements Screen{
 	private BitmapFont font;
 	private Label airportName;
 	private Label moneyLabel;
+	
+	private boolean drawPlane;
 
 	private Texture background;
+	private Texture tarmac;
 	private Texture building;
 	private Texture seats;
+	private Texture planeTexture;
 
 	public AirportScreen(final Planes game, ArrayList<Data> data) {
 		this.game = game;
@@ -96,8 +102,6 @@ public class AirportScreen implements Screen{
 		airportName = new Label("", new LabelStyle(new BitmapFont(Gdx.files.internal("myFont.fnt")), new Color(.2f, .42f, .49f, 1)));
 		airportName.setFontScale(1.5f);
 		airportName.setPosition(530, 575);
-		//layout.getWidth()*2 + 25
-		//+46
 
 		//Create Money text/image
 		Image coin = new Image(new Texture("ui/coin.png"));
@@ -120,6 +124,8 @@ public class AirportScreen implements Screen{
 		Ui.addActor(menuButton);
 		Ui.addActor(mapButton);
 		Ui.addActor(flightsButton);
+		
+		drawPlane = false;
 
 	}
 
@@ -134,7 +140,11 @@ public class AirportScreen implements Screen{
 		}else {
 			background = new Texture(texturePath);
 		}
+		if(drawPlane) {
+			planeTexture = new Texture("planes/" + currentPlane.getNumber() + "_base.png");
+		}
 		moneyLabel.setText(data.get(0).getMoney() + "");
+		tarmac = new Texture("backgrounds/airport1_tarmac.png");
 		building = new Texture("airport3_base.png");
 		seats = new Texture("airport3_seats.png");
 
@@ -149,7 +159,9 @@ public class AirportScreen implements Screen{
 		camera.update();
 
 		game.getBatch().begin();
-		game.getBatch().draw(background, Gdx.graphics.getWidth()/2-120, Gdx.graphics.getHeight()/2-110);
+		game.getBatch().draw(background, Gdx.graphics.getWidth()/2-120, Gdx.graphics.getHeight()/2-100);
+		game.getBatch().draw(tarmac, Gdx.graphics.getWidth()/2-120, Gdx.graphics.getHeight()/2-100);
+		if(drawPlane)game.getBatch().draw(planeTexture, Gdx.graphics.getWidth()/2-60, Gdx.graphics.getHeight()/2-40);
 		game.getBatch().draw(building, Gdx.graphics.getWidth()/2-120, Gdx.graphics.getHeight()/2-87);
 		game.getBatch().draw(seats, Gdx.graphics.getWidth()/2-40, Gdx.graphics.getHeight()/2-55);
 		game.getBatch().end();
@@ -173,7 +185,11 @@ public class AirportScreen implements Screen{
 
 	@Override
 	public void hide() {
-		
+		if(drawPlane){
+			planeTexture.dispose();
+			currentPlane = null;
+			drawPlane = false;
+		}
 	}
 
 	@Override
@@ -186,5 +202,10 @@ public class AirportScreen implements Screen{
 		texturePath_night = texturePath.substring(0, texturePath.length()-4) + "_night.png";
 		airportName.setText(airport.getName());
 		timeZone = airport.getTimeZone();
+	}
+	
+	public void setPlane(Plane currentPlane) {
+		this.currentPlane = currentPlane;
+		drawPlane = true;
 	}
 }
