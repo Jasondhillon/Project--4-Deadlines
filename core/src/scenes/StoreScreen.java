@@ -27,7 +27,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.planes.pc.Planes;
 
-import data.DataButton;
+import data.DataImageButton;
 import data.Data;
 import sprites.Plane;
 
@@ -148,7 +148,7 @@ public class StoreScreen implements Screen{
 
 			//Add buy button
 			TextureRegionDrawable buyButtonTexture = game.createTextureRegionDrawable("ui/shop_buy.png", 75, 50);
-			DataButton buyButton = new DataButton(buyButtonTexture, buyButtonTexture.tint(Color.GRAY), game.getPlanesData().get(i-1));
+			DataImageButton buyButton = new DataImageButton(buyButtonTexture, buyButtonTexture.tint(Color.GRAY), game.getPlanesData().get(i-1));
 			buyButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
@@ -250,7 +250,7 @@ public class StoreScreen implements Screen{
 
 				if(data.get(0).getMoney() - plane.getPrice() >= 0) {
 					data.get(0).setMoney(data.get(0).getMoney()- plane.getPrice());
-					data.get(0).addPlane(plane);
+					data.get(0).addPlane(new Plane(plane.getName(), plane.getNumber(), plane.getSpeed(), plane.getPrice(), null, 0, 0));
 					buyDialog.hide();
 					buyDialog.cancel();
 					buyDialog.remove();

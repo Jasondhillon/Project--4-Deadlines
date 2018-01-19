@@ -27,7 +27,8 @@ import com.badlogic.gdx.utils.Align;
 import com.planes.pc.Planes;
 
 import data.Data;
-import data.DataButton;
+import data.DataImageButton;
+import data.DataTextButton;
 import sprites.Airport;
 
 public class FlightsScreen implements Screen{
@@ -127,10 +128,10 @@ public class FlightsScreen implements Screen{
 
 				//Create entry
 				Table t1 = new Table();
+				//Add entry to table of entries
 				t1.setBackground(shopTexture);
 				t1.left();
 				
-
 				//Add plane name to entry
 				Label planeName = new Label(data.get(0).getPlane().get(i).getName(), style);
 				planeName.setFontScale(2f);
@@ -138,27 +139,27 @@ public class FlightsScreen implements Screen{
 				t1.add(planeName).padLeft(50).maxWidth(200);
 
 				//Add plane image to entry
-				System.out.println("planes/" + data.get(0).getPlane().get(i).getNumber() + "_base.png");
 				try {
-					t1.add(new ImageButton(game.createTextureRegionDrawable("planes/" + data.get(0).getPlane().get(i).getNumber() + "_base.png", 160, 80)).padLeft(400));
+					t1.add(new ImageButton(game.createTextureRegionDrawable("planes/" + data.get(0).getPlane().get(i).getNumber() + "_base.png", 160, 80))).padLeft(400);
 				}catch(Exception e) {}
 
 				//Add info button
 				ImageButton infoButton = new ImageButton(infoTexture, infoTexture.tint(Color.GRAY));
+				infoButton.setSize(20, 20);
 				infoButton.addListener(new ClickListener() {
 					@Override
 					public void clicked(InputEvent event, float x, float y) {
-
+						
 					}
 
 				});
+				infoButton.setZIndex(1);
 				t1.add(infoButton).padLeft(50);
-				
 				
 				//If the plane is already placed in an airport, do not display the place plane button
 				if(data.get(0).getPlane().get(i).getLocation() == null) {
 					//Add place button
-					DataButton flyButton = new DataButton(placePlaneTexture, placePlaneTexture.tint(Color.GRAY), data.get(0).getPlane().get(i));
+					DataImageButton flyButton = new DataImageButton(placePlaneTexture, placePlaneTexture.tint(Color.GRAY), data.get(0).getPlane().get(i));
 					flyButton.addListener(new ClickListener() {
 						@Override
 						public void clicked(InputEvent event, float x, float y) {
@@ -169,9 +170,9 @@ public class FlightsScreen implements Screen{
 								if(a.isBought()) airportBought = true;
 							}
 							
-							//If airport is bought, place the plane in the airport
+							//If atleast one airport is bought, place the plane in the airport
 							if(airportBought == true) {
-								DataButton temp = (DataButton)event.getListenerActor();
+								DataImageButton temp = (DataImageButton)event.getListenerActor();
 								game.getMapScreen().setPlacePlaneMode(true);
 								game.getMapScreen().setCurrentPlane(temp.getPlane());
 								game.setScreen(game.getMapScreen());
@@ -212,25 +213,38 @@ public class FlightsScreen implements Screen{
 					});
 					t1.add(flyButton).padLeft(200);
 				}else{
-					//Add plane location 
-					Label planeLocation = new Label(data.get(0).getPlane().get(i).getLocation().getName(), style);
-					planeLocation.setFontScale(2f);
-					planeLocation.setWrap(true);
-					t1.add(planeLocation).padLeft(50).maxWidth(200);
+					//Add plane location
+					DataTextButton planeLocation = new DataTextButton(data.get(0).getPlane().get(i).getLocation().getName(), new Skin (Gdx.files.internal("clean-crispy-ui.json")));
+					planeLocation.setPlane(data.get(0).getPlane().get(i));
+					planeLocation.getLabel().setFontScale(2f);
+					planeLocation.addListener(new ClickListener() {
+
+						@Override
+						public void clicked(InputEvent event, float x, float y) {
+							DataTextButton temp = (DataTextButton) event.getListenerActor();
+							game.getAirportScreen().setAirport(temp.getPlane().getLocation());
+							game.setScreen(game.getAirportScreen());
+						}
+						
+					});
+					t1.add(planeLocation).padLeft(200 - (planeLocation.getWidth()/2)).align(Align.center);
 				}
 
-
-				//Add entry to table of entries
 				scrollTable.add(t1).expand();
 				scrollTable.row();
 				
-				
-				if(i == data.get(0).getPlane().size() && i>5) {
-					t1 = new Table();
-					t1.setBackground(game.createTextureRegionDrawable("ui/flightlog_item.png", Gdx.graphics.getWidth(), 100));
-					t1.left();
-					t1.add(new Image());
-					scrollTable.add(t1).expand().row();
+				//Add empty placeholder to allow easy access to the bottom entry when scrolling
+				if(i == data.get(0).getPlane().size()-1) {
+					float temp = 1;
+					if(data.get(0).getPlane().size()<7)
+						temp = Math.abs(data.get(0).getPlane().size()-7);
+					for(int j = 0; j<temp; j++) {
+						t1 = new Table();
+						t1.setBackground(shopTexture);
+						t1.left();
+						t1.add(new Image());
+						scrollTable.add(t1).expand().row();
+					}
 				}
 			}
 

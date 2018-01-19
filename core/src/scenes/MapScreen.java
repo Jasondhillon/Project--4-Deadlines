@@ -142,7 +142,7 @@ public class MapScreen implements Screen, InputProcessor{
 		Image coin = new Image(new Texture("ui/coin.png"));
 		coin.setScale(4.5f);
 		coin.setPosition(10, 0);
-		moneyLabel = new Label(data.get(0).getMoney() + "", style);
+		moneyLabel = new Label(data.get(0).getMoney() + "", new LabelStyle(new BitmapFont(), Color.WHITE));
 		moneyLabel.setFontScale(2f);
 		moneyLabel.setPosition(50, 10);
 		
@@ -154,11 +154,12 @@ public class MapScreen implements Screen, InputProcessor{
 
 		//Add all the static stuff to the stage
 		Ui.addActor(bar);
+		Ui.addActor(coin);
+		Ui.addActor(moneyLabel);
 		Ui.addActor(menuButton);
 		Ui.addActor(mapButton);
 		Ui.addActor(flightsButton);
-		Ui.addActor(coin);
-		Ui.addActor(moneyLabel);
+
 
 	}
 

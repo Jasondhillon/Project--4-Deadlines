@@ -1,12 +1,17 @@
 package sprites;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 
-public class Airport extends Sprite{
+public class Airport extends Sprite implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5531177322751852082L;
 	private String name;
 	private String location;
 	private String timeZone;
