@@ -1,5 +1,4 @@
 # Project: 4-Deadlines
-Memes
 
 <i>Author: shotgunsam419</i>
 
