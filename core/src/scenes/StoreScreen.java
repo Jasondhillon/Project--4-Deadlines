@@ -148,7 +148,7 @@ public class StoreScreen implements Screen{
 
 			//Add buy button
 			TextureRegionDrawable buyButtonTexture = game.createTextureRegionDrawable("ui/shop_buy.png", 75, 50);
-			DataImageButton buyButton = new DataImageButton(buyButtonTexture, buyButtonTexture.tint(Color.GRAY), game.getPlanesData().get(i-1));
+			final DataImageButton buyButton = new DataImageButton(buyButtonTexture, buyButtonTexture.tint(Color.GRAY), game.getPlanesData().get(i-1));
 			buyButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
@@ -233,7 +233,7 @@ public class StoreScreen implements Screen{
 	}
 
 	//Creates the aiport buy dialog boxes
-	public void createBuyDialog(Plane plane) {
+	public void createBuyDialog(final Plane plane) {
 		final Skin skin = new Skin (Gdx.files.internal("clean-crispy-ui.json"));
 		final Drawable drawable = new TextureRegionDrawable(new TextureRegion(new Texture("ui/NB_dialog.png")));
 		drawable.setMinHeight(300);

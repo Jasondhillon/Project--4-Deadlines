@@ -109,7 +109,7 @@ public class FlightsScreen implements Screen{
 		TextureRegionDrawable shopTexture = game.createTextureRegionDrawable("ui/flightlog_item.png", Gdx.graphics.getWidth(), 100);
 		TextureRegionDrawable infoTexture = game.createTextureRegionDrawable("ui/info.png", 25, 25);
 		TextureRegionDrawable placePlaneTexture = game.createTextureRegionDrawable("ui/startlocation_start_button.png", 75, 50);
-		LabelStyle style = new LabelStyle(new BitmapFont(), Color.WHITE);
+		final LabelStyle style = new LabelStyle(new BitmapFont(), Color.WHITE);
 
 
 		//TODO: onClick send info from dialog to create a new Plane Sprite

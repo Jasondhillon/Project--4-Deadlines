@@ -434,7 +434,7 @@ public class MapScreen implements Screen, InputProcessor{
 	//Creates the aiport buy dialog boxes
 	public void createBuyDialog() {
 		Gdx.input.setInputProcessor(dialogStage);
-		Dialog buyDialog = new Dialog("", skin);
+		final Dialog buyDialog = new Dialog("", skin);
 		dialogBackground = new TextureRegionDrawable(new TextureRegion(new Texture("ui/NB_dialog.png")));
 		dialogBackground.setMinHeight(300);
 		dialogBackground.setMinWidth(300);

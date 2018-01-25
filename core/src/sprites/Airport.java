@@ -66,7 +66,7 @@ public class Airport extends Sprite implements Serializable{
 
 	public void setBought(boolean isBought) {
 		this.isBought = isBought;
-		this.setRegion(new Texture("citydot_c2.png"));
+		this.setRegion(new Texture("ui/citydot_c2.png"));
 	}
 
 	@Override
