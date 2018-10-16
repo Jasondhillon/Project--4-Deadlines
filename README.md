@@ -2,7 +2,7 @@
 
 <i>Author: Jason Dhillon</i>
 <ul>
-  <li>Project designed to recreate a popular mobile app on the PC through Libgdx</li>
+  <li>Project designed to recreate a popular mobile app (Pocket Planes) on the PC through Libgdx</li>
 </ul>
 <br>
 <h1>Important Notes:</h1>
