@@ -1,6 +1,6 @@
 # Project: 4-Deadlines
 
-<i>Author: shotgunsam419</i>
+<i>Author: Jason Dhillon</i>
 <ul>
   <li>Project designed to recreate a popular mobile app on the PC through Libgdx</li>
 </ul>
