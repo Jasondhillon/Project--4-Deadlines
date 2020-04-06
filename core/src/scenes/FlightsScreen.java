@@ -37,6 +37,7 @@ public class FlightsScreen implements Screen{
 	private ArrayList<Data> data;
 	private OrthographicCamera camera;
 	private Label moneyLabel;
+	private Image header;
 	private Image bar;
 	private Image coin;
 	private ImageButton menuButton;
@@ -52,6 +53,12 @@ public class FlightsScreen implements Screen{
 		camera = new OrthographicCamera(Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2); 
 		camera.position.set(Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2, 0);
 		camera.zoom = 0.4f;
+		
+		//Header
+		header = new Image(new Texture("ui/arrivals_header169.png"));
+		header.setScaleX(4f);
+		header.setScaleY(2.5f);
+		header.setPosition(0, 700);
 
 		//Back Button
 		TextureRegionDrawable menuButtonTexture = game.createTextureRegionDrawable("ui/menu_close.png", 100, 100);
@@ -95,11 +102,7 @@ public class FlightsScreen implements Screen{
 		bar.setScaleX(15f);
 		bar.setScaleY(5f);
 		bar.setPosition(0, -5);
-
-		//TODO : Create background for shop
-		//TODO : Make a list of all the planes to buy
-		//TODO : Make Sprites for the planes
-
+		
 	}
 
 	@Override
@@ -107,7 +110,6 @@ public class FlightsScreen implements Screen{
 		Gdx.input.setInputProcessor(Ui);
 		//Entries
 		TextureRegionDrawable shopTexture = game.createTextureRegionDrawable("ui/flightlog_item.png", Gdx.graphics.getWidth(), 100);
-		TextureRegionDrawable infoTexture = game.createTextureRegionDrawable("ui/info.png", 25, 25);
 		TextureRegionDrawable placePlaneTexture = game.createTextureRegionDrawable("ui/startlocation_start_button.png", 75, 50);
 		final LabelStyle style = new LabelStyle(new BitmapFont(), Color.WHITE);
 
@@ -118,13 +120,11 @@ public class FlightsScreen implements Screen{
 		//TODO: Keep a global list of planes and their location so we can swap to and from them
 		//TODO: Add location either being [airport/in the air/hangar]
 		
-		//TODO: Debugging
-		System.out.println("New Table");
 		
-		//Create table of entries
+		//Create table of owned planes
 		Table scrollTable = new Table();
-		if(data.get(0).getPlane().size()>0) {
-			for(int i = 0; i<data.get(0).getPlane().size(); i++) {
+		if(data.get(0).getBoughtPlanes().size()>0) {
+			for(int i = 0; i<data.get(0).getBoughtPlanes().size(); i++) {
 
 				//Create entry
 				Table t1 = new Table();
@@ -133,33 +133,15 @@ public class FlightsScreen implements Screen{
 				t1.left();
 				
 				//Add plane name to entry
-				Label planeName = new Label(data.get(0).getPlane().get(i).getName(), style);
-				planeName.setFontScale(2f);
+				Label planeName = new Label(data.get(0).getBoughtPlanes().get(i).getName(), style);
+				planeName.setFontScale(1.5f);
 				planeName.setWrap(true);
 				t1.add(planeName).padLeft(50).maxWidth(200);
 
-				//Add plane image to entry
-				try {
-					t1.add(new ImageButton(game.createTextureRegionDrawable("planes/" + data.get(0).getPlane().get(i).getNumber() + "_base.png", 160, 80))).padLeft(400);
-				}catch(Exception e) {}
-
-				//Add info button
-				ImageButton infoButton = new ImageButton(infoTexture, infoTexture.tint(Color.GRAY));
-				infoButton.setSize(20, 20);
-				infoButton.addListener(new ClickListener() {
-					@Override
-					public void clicked(InputEvent event, float x, float y) {
-						
-					}
-
-				});
-				infoButton.setZIndex(1);
-				t1.add(infoButton).padLeft(50);
-				
-				//If the plane is already placed in an airport, do not display the place plane button
-				if(data.get(0).getPlane().get(i).getLocation() == null) {
+				// Display start button to place plane in an airport
+				if(data.get(0).getBoughtPlanes().get(i).getLocation() == null) {
 					//Add place button
-					DataImageButton flyButton = new DataImageButton(placePlaneTexture, placePlaneTexture.tint(Color.GRAY), data.get(0).getPlane().get(i));
+					DataImageButton flyButton = new DataImageButton(placePlaneTexture, placePlaneTexture.tint(Color.GRAY), data.get(0).getBoughtPlanes().get(i));
 					flyButton.addListener(new ClickListener() {
 						@Override
 						public void clicked(InputEvent event, float x, float y) {
@@ -170,7 +152,7 @@ public class FlightsScreen implements Screen{
 								if(a.isBought()) airportBought = true;
 							}
 							
-							//If atleast one airport is bought, place the plane in the airport
+							//Show owned airports on map and set the current plane to being placed
 							if(airportBought == true) {
 								DataImageButton temp = (DataImageButton)event.getListenerActor();
 								game.getMapScreen().setPlacePlaneMode(true);
@@ -197,9 +179,6 @@ public class FlightsScreen implements Screen{
 									public boolean touchDown(InputEvent event, float x, float y,
 											int pointer, int button) {
 										error.hide();
-										error.cancel();
-										error.remove();
-										error.reset();
 										return true;
 									}
 								});
@@ -211,11 +190,35 @@ public class FlightsScreen implements Screen{
 						}
 
 					});
-					t1.add(flyButton).padLeft(200);
-				}else{
-					//Add plane location
-					DataTextButton planeLocation = new DataTextButton(data.get(0).getPlane().get(i).getLocation().getName(), new Skin (Gdx.files.internal("clean-crispy-ui.json")));
-					planeLocation.setPlane(data.get(0).getPlane().get(i));
+					t1.add(flyButton).padLeft(300);
+				}
+				
+				// TODO: Make flying screen while plane is in flight
+				else if (data.get(0).getBoughtPlanes().get(i).isFlying())
+				{
+					//Go to plane location
+					DataTextButton planeLocation = new DataTextButton("FLYING", new Skin (Gdx.files.internal("clean-crispy-ui.json")));
+					planeLocation.setPlane(data.get(0).getBoughtPlanes().get(i));
+					planeLocation.getLabel().setFontScale(2f);
+					planeLocation.addListener(new ClickListener() {
+
+						@Override
+						public void clicked(InputEvent event, float x, float y) {
+//							DataTextButton temp = (DataTextButton) event.getListenerActor();
+//							game.getAirportScreen().setAirport(temp.getPlane().getLocation());
+//							game.getAirportScreen().setPlane(temp.getPlane());
+//							game.setScreen(game.getAirportScreen());
+						}
+						
+					});
+					t1.add(planeLocation).padLeft(300 - (planeLocation.getWidth()/2)).align(Align.center);
+				}
+				
+				// Display the airport name the plane is currently stationed at
+				else{
+					//Go to plane location
+					DataTextButton planeLocation = new DataTextButton(data.get(0).getBoughtPlanes().get(i).getLocation().getName(), new Skin (Gdx.files.internal("clean-crispy-ui.json")));
+					planeLocation.setPlane(data.get(0).getBoughtPlanes().get(i));
 					planeLocation.getLabel().setFontScale(2f);
 					planeLocation.addListener(new ClickListener() {
 
@@ -228,17 +231,22 @@ public class FlightsScreen implements Screen{
 						}
 						
 					});
-					t1.add(planeLocation).padLeft(200 - (planeLocation.getWidth()/2)).align(Align.center);
+					t1.add(planeLocation).padLeft(300 - (planeLocation.getWidth()/2)).align(Align.center);
 				}
+				
+				//Add plane image to entry
+				try {
+					t1.add(new ImageButton(game.createTextureRegionDrawable("planes/" + data.get(0).getBoughtPlanes().get(i).getNumber() + "_base.png", 160, 80))).padLeft(250);
+				}catch(Exception e) {}
 
 				scrollTable.add(t1).expand();
 				scrollTable.row();
 				
 				//Add empty placeholder to allow easy access to the bottom entry when scrolling
-				if(i == data.get(0).getPlane().size()-1) {
+				if(i == data.get(0).getBoughtPlanes().size()-1) {
 					float temp = 1;
-					if(data.get(0).getPlane().size()<7)
-						temp = Math.abs(data.get(0).getPlane().size()-7);
+					if(data.get(0).getBoughtPlanes().size()<7)
+						temp = Math.abs(data.get(0).getBoughtPlanes().size()-7);
 					for(int j = 0; j<temp; j++) {
 						t1 = new Table();
 						t1.setBackground(shopTexture);
@@ -252,13 +260,14 @@ public class FlightsScreen implements Screen{
 			ScrollPane scroller = new ScrollPane(scrollTable);
 			
 			Table entries = new Table();
+			entries.setPosition(0, -20);
 			entries.setFillParent(true);
 			entries.add(scroller).fill().expand();
 
 			Ui.addActor(entries);
 			Ui.setScrollFocus(scroller);
 		}
-
+		Ui.addActor(header);
 		Ui.addActor(bar);
 		Ui.addActor(coin);
 		Ui.addActor(moneyLabel);

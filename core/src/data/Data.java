@@ -18,7 +18,7 @@ public class Data implements Serializable{
 	private ArrayList<Plane> planes;
 	private int money;
 	
-	
+	// Airport Data
 	public Data(String name, String location, String timeZone, int price, boolean isBought, float x, float y) {
 		this.name = name;
 		this.location = location;
@@ -30,6 +30,7 @@ public class Data implements Serializable{
 		this.money = -1;
 	}
 	
+	// Bought planes data
 	public Data(int money, ArrayList<Plane> planes) {
 		this.money = money;
 		this.planes = planes;
@@ -47,7 +48,7 @@ public class Data implements Serializable{
 		planes.add(plane);
 	}
 	
-	public ArrayList<Plane> getPlane() {
+	public ArrayList<Plane> getBoughtPlanes() {
 		return planes;
 	}
 	

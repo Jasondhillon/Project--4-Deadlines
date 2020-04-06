@@ -17,6 +17,7 @@ public class Airport extends Sprite implements Serializable{
 	private String timeZone;
 	private boolean isBought;
 	private int price;
+	private float x, y;
 	private ArrayList<Plane> planes;
 
 	public Airport(String name, String location, String timeZone, int price, boolean isBought, float x, float y) {
@@ -28,9 +29,10 @@ public class Airport extends Sprite implements Serializable{
 		this.price = price;
 		this.isBought = isBought;
 		this.setSize(16, 16);
+		this.x = x;
+		this.y = y;
 		this.setPosition(x, y);
 	}
-
 
 	public String getName() {
 		return name;
@@ -40,7 +42,6 @@ public class Airport extends Sprite implements Serializable{
 		return location;
 	}
 	
-
 	public String getTimeZone() {
 		return timeZone;
 	}
@@ -53,20 +54,27 @@ public class Airport extends Sprite implements Serializable{
 		return isBought;
 	}
 	
-	
 	public ArrayList<Plane> getPlanes() {
 		return planes;
 	}
-
 
 	public void setPlanes(ArrayList<Plane> planes) {
 		this.planes = planes;
 	}
 
-
 	public void setBought(boolean isBought) {
 		this.isBought = isBought;
 		this.setRegion(new Texture("ui/citydot_c2.png"));
+	}
+
+	public float getX()
+	{
+		return x;
+	}
+
+	public float getY()
+	{
+		return y;
 	}
 
 	@Override

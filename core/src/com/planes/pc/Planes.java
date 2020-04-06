@@ -12,6 +12,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -21,6 +22,7 @@ import com.badlogic.gdx.utils.JsonValue;
 import data.Data;
 import scenes.AirportScreen;
 import scenes.FlightsScreen;
+import scenes.JobScreen;
 import scenes.MapScreen;
 import scenes.MenuScreen;
 import scenes.StoreScreen;
@@ -39,41 +41,52 @@ public class Planes extends Game implements Serializable{
 	private MenuScreen menuScreen;
 	private AirportScreen airportScreen;
 	private FlightsScreen flightsScreen;
+	private JobScreen jobScreen;
 	private StoreScreen storeScreen;
 	private Screen previousScreen;
 	private Screen previousScreen2;
-	private ArrayList<Data> airportData;
+	private ArrayList<Data> playerData;
 	private ArrayList<Plane> planesData;
-	File data = new File("data.txt");
+	private File data = new File("data.txt");
+	private Sprite sprite;
 
 	//Create() runs only once, just like how a constructor works, used to initialize everything
 	@Override
 	public void create () {
-
+		batch = new SpriteBatch();
+		sprite = new Sprite(new Texture(Gdx.files.internal("map_plane.png")));
+		sprite.setSize(50, 50);
+		sprite.setOriginCenter();
+		
+		// No save data
 		if(!data.exists()) {
 			//Create first time airport selection screen
-			airportData = new ArrayList<Data>();
-			airportData.add(new Data(50000, new ArrayList<Plane>()));
+			playerData = new ArrayList<Data>();
+			// Initialize money to $50,000 and and empty list of planes, store in index 0
+			playerData.add(new Data(50000, new ArrayList<Plane>()));
+			// Populate the airport data from JSON
 			getAirportsJson();
-
+		
+		// Save data
 		}else{
-			airportData = SerializationRead();
-			if(airportData == null) {
-				System.out.println("The data.txt is br0ken!");
+			playerData = SerializationRead();
+			if(playerData == null) {
+				System.out.println("The data.txt is broken!");
 				System.exit(0);
 			}
 		}
 
 		//Batch = the set of things to draw - only one can exist, kind of like having only one main method
 		planesData = new ArrayList<Plane>();
-		//TODO: Initialize through serialization
+		Plane.data = playerData.get(0);
+		// Populate the planes data from JSON
 		getPlanesJson();
-		batch = new SpriteBatch();
-		mapScreen = new MapScreen(this, airportData);
-		menuScreen = new MenuScreen(this, airportData);
-		airportScreen = new AirportScreen(this, airportData);
-		flightsScreen = new FlightsScreen(this, airportData);
-		storeScreen = new StoreScreen(this, airportData);
+		mapScreen = new MapScreen(this, playerData);
+		menuScreen = new MenuScreen(this, playerData);
+		airportScreen = new AirportScreen(this, playerData);
+		flightsScreen = new FlightsScreen(this, playerData);
+		storeScreen = new StoreScreen(this, playerData);
+		jobScreen = new JobScreen(this, playerData);
 		setScreen(mapScreen);
 
 	}
@@ -112,7 +125,11 @@ public class Planes extends Game implements Serializable{
 	public FlightsScreen getFlightsScreen() {
 		return flightsScreen;
 	}
-
+	
+	public JobScreen getJobScreen() {
+		return jobScreen;
+	}
+	
 	public void setPreviousScreen(Screen screen) {
 		previousScreen = screen;
 	}
@@ -142,7 +159,10 @@ public class Planes extends Game implements Serializable{
 		try{
 			in = new ObjectInputStream(new FileInputStream("data.txt"));
 			temp =  (ArrayList<Data>) in.readObject();
-			System.out.println("Read objects from file successfully");
+			for(Plane a : temp.get(0).getBoughtPlanes())
+			{
+				a.set(sprite);
+			}
 			in.close();
 			return temp;
 
@@ -156,7 +176,9 @@ public class Planes extends Game implements Serializable{
 	public void SerializationWrite(ArrayList<Airport> toWrite){
 		ObjectOutputStream out;
 		ArrayList<Data> temp = new ArrayList<Data>();
-		temp.add(new Data(airportData.get(0).getMoney(), airportData.get(0).getPlane()));
+		// Write current money and bought planes
+		temp.add(new Data(playerData.get(0).getMoney(), playerData.get(0).getBoughtPlanes()));
+		// Write airports
 		for(Airport a : toWrite) {
 			temp.add(new Data(a.getName(),a.getLocation(),a.getTimeZone(), a.getPrice(), a.isBought(), a.getX(), a.getY()));
 		}
@@ -173,14 +195,14 @@ public class Planes extends Game implements Serializable{
 			System.out.println(e.getMessage());
 		}
 
-		System.out.println("Wrote objects into file successfully");
 	}
 
 	private void getPlanesJson() {
 		JsonValue jsonFile = new JsonReader().parse( Gdx.files.internal("planes/planeInfo.json"));
 		for(int i = 1; i<=jsonFile.size; i++) {
-			//System.out.println(i + "\n"+ jsonFile.get(i-1).get(1).toString() + "\n"  + jsonFile.get(i-1).getInt(2) + "\n" + jsonFile.get(i-1).getInt(3));
-			planesData.add(new Plane(jsonFile.get(i-1).get(1).toString(), i, jsonFile.get(i-1).getInt(2), jsonFile.get(i-1).getInt(3), null , 0, 0));
+//			System.out.println(i + "\n"+ jsonFile.get(i-1).get(1).toString() + "\n"  + jsonFile.get(i-1).getInt(2) + "\n" + jsonFile.get(i-1).getInt(3));
+			// jsonFile.get(i-1).getInt(2)
+			planesData.add(new Plane(sprite, jsonFile.get(i-1).get(1).toString(), i, 50, jsonFile.get(i-1).getInt(3), null));
 		}
 	}
 	
@@ -193,8 +215,16 @@ public class Planes extends Game implements Serializable{
 			}else {
 				temp = jsonFile.get(i-1).getInt(7) + "_background.png";
 			}
-			airportData.add(new Data(jsonFile.get(i-1).get(2).toString(), temp , "America/New_York", 2000, false, jsonFile.get(i-1).getInt(3)-6, 1905 - jsonFile.get(i-1).getInt(4)));
+			// Airports are stored from index 1 onwards
+			playerData.add(new Data(jsonFile.get(i-1).get(2).toString(), temp , "America/New_York", 2000, false, jsonFile.get(i-1).getInt(3)-6, 1905 - jsonFile.get(i-1).getInt(4)));
 		}
+	}
+	
+	
+
+	public ArrayList<Data> getPlayerData()
+	{
+		return playerData;
 	}
 
 	//Resizes the textures

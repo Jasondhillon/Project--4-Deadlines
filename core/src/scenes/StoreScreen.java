@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -39,6 +40,9 @@ public class StoreScreen implements Screen{
 	private LabelStyle style;
 	private ScrollPane scroller;
 	private Dialog buyDialog;
+	private Label label;
+	private Plane plane;
+	private Sprite sprite = new Sprite(new Texture(Gdx.files.internal("map_plane.png")));
 
 	public StoreScreen(final Planes game, ArrayList<Data> data) {
 		this.game = game;
@@ -102,10 +106,6 @@ public class StoreScreen implements Screen{
 		style = new LabelStyle(new BitmapFont(), Color.WHITE);
 
 
-		//TODO: onClick send info from dialog to create a new Plane Sprite
-		//TODO: Create a hangarScreen to store planes in
-		//TODO: Send planes to Airport, add Plane to airport ArrayList<Plane>
-		//TODO: Keep a global list of planes and their location so we can swap to and from them
 		//TODO: Add location either being [airport/in the air/hangar]
 
 		//Create table of entries
@@ -152,7 +152,8 @@ public class StoreScreen implements Screen{
 			buyButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					createBuyDialog(buyButton.getPlane());
+					plane = buyButton.getPlane();
+					label.setText("Would you like to buy\n" + plane.getName() + "\nfor\n $" + plane.getPrice());
 					buyDialog.show(Ui);
 				}
 
@@ -185,7 +186,93 @@ public class StoreScreen implements Screen{
 		Ui.addActor(menuButton);
 		Ui.addActor(mapButton);
 		Ui.addActor(flightsButton);
+		
+		final Skin skin = new Skin (Gdx.files.internal("clean-crispy-ui.json"));
+		final Drawable drawable = new TextureRegionDrawable(new TextureRegion(new Texture("ui/NB_dialog.png")));
+		drawable.setMinHeight(300);
+		drawable.setMinWidth(300);
 
+		
+		
+		// BUY PLANE DIALOG
+		buyDialog = new Dialog("", skin);
+
+		TextButton btnYes = new TextButton("Yes", skin);
+		btnYes.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y,
+					int pointer, int button) {
+				
+				// If we have enough to buy the plane
+				if(data.get(0).getMoney() - plane.getPrice() >= 0) {
+					data.get(0).setMoney(data.get(0).getMoney()- plane.getPrice());
+					// Create a new plan and add it to "data"
+					data.get(0).addPlane(new Plane(sprite, plane.getName(), plane.getNumber(), plane.getSpeed(), plane.getPrice(), null));
+					buyDialog.hide();
+				
+				// If we don't have enough to buy the plane
+				}else{
+					final Dialog error = new Dialog("", skin);
+					error.setBackground(drawable);
+
+					Label label2 = new Label("You don't have\n enough money\n to purchase this!", style);
+					label2.setFontScale(2f);
+					label2.setAlignment(Align.center);
+
+					error.getContentTable().add(label2).padTop(20f);
+
+					TextButton btnOkay = new TextButton("Okay", skin);
+					btnOkay.addListener(new ClickListener() {
+						@Override
+						public boolean touchDown(InputEvent event, float x, float y,
+								int pointer, int button) {
+
+							error.hide();
+							buyDialog.hide();
+							return true;
+						}
+
+					});
+					btnOkay.getLabel().setFontScale(1.8f);
+
+					Table t = new Table();
+					t.add(btnOkay).width(80f).height(80f).pad(5f);
+
+					error.getButtonTable().add(t).center();
+					error.show(Ui);
+				}
+				return true;
+			}
+
+		});
+		btnYes.getLabel().setFontScale(1.8f);
+
+		TextButton btnNo = new TextButton("No", skin);
+		btnNo.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y,
+					int pointer, int button) {
+
+				// Do whatever here for exit button
+				buyDialog.hide();
+				return true;
+			}
+
+		});
+		btnNo.getLabel().setFontScale(1.8f);
+
+		buyDialog.setBackground(drawable);
+
+		Table t = new Table();
+		t.add(btnYes).width(60f).height(60f).pad(5f);
+		t.add(btnNo).width(60f).height(60f).pad(5f);
+
+		label = new Label("" , style);
+		label.setFontScale(2f);
+		label.setAlignment(Align.center);
+
+		buyDialog.getContentTable().add(label).padTop(20f);
+		buyDialog.getButtonTable().add(t).center();
 
 	}
 
@@ -230,103 +317,6 @@ public class StoreScreen implements Screen{
 	@Override
 	public void dispose() {
 
-	}
-
-	//Creates the aiport buy dialog boxes
-	public void createBuyDialog(final Plane plane) {
-		final Skin skin = new Skin (Gdx.files.internal("clean-crispy-ui.json"));
-		final Drawable drawable = new TextureRegionDrawable(new TextureRegion(new Texture("ui/NB_dialog.png")));
-		drawable.setMinHeight(300);
-		drawable.setMinWidth(300);
-
-
-		buyDialog = new Dialog("", skin);
-
-		TextButton btnYes = new TextButton("Yes", skin);
-		btnYes.addListener(new ClickListener() {
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y,
-					int pointer, int button) {
-
-				if(data.get(0).getMoney() - plane.getPrice() >= 0) {
-					data.get(0).setMoney(data.get(0).getMoney()- plane.getPrice());
-					data.get(0).addPlane(new Plane(plane.getName(), plane.getNumber(), plane.getSpeed(), plane.getPrice(), null, 0, 0));
-					buyDialog.hide();
-					buyDialog.cancel();
-					buyDialog.remove();
-
-				}else{
-					final Dialog error = new Dialog("", skin);
-					error.setBackground(drawable);
-
-					Label label2 = new Label("You don't have\n enough money\n to purchase this!", style);
-					label2.setFontScale(2f);
-					label2.setAlignment(Align.center);
-
-					error.getContentTable().add(label2).padTop(20f);
-
-					TextButton btnOkay = new TextButton("Okay", skin);
-					btnOkay.addListener(new ClickListener() {
-						@Override
-						public boolean touchDown(InputEvent event, float x, float y,
-								int pointer, int button) {
-
-							error.hide();
-							error.cancel();
-							error.remove();
-							error.reset();
-							buyDialog.hide();
-							buyDialog.cancel();
-							buyDialog.remove();  
-							buyDialog.reset();
-							return true;
-						}
-
-					});
-					btnOkay.getLabel().setFontScale(1.8f);
-
-					Table t = new Table();
-					t.add(btnOkay).width(80f).height(80f).pad(5f);
-
-					error.getButtonTable().add(t).center();
-					error.show(Ui);
-				}
-				return true;
-			}
-
-		});
-		btnYes.getLabel().setFontScale(1.8f);
-
-		TextButton btnNo = new TextButton("No", skin);
-		btnNo.addListener(new ClickListener() {
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y,
-					int pointer, int button) {
-
-				// Do whatever here for exit button
-				buyDialog.hide();
-				buyDialog.cancel();
-				buyDialog.remove();      
-				buyDialog.reset();
-
-				return true;
-			}
-
-		});
-		btnNo.getLabel().setFontScale(1.8f);
-
-		buyDialog.setBackground(drawable);
-
-		Table t = new Table();
-		t.add(btnYes).width(60f).height(60f).pad(5f);
-		t.add(btnNo).width(60f).height(60f).pad(5f);
-
-		Label label = new Label("Would you like to buy\n" + plane.getName() + "\nfor\n $" + plane.getPrice() , style);
-		label.setFontScale(2f);
-		label.setAlignment(Align.center);
-
-		buyDialog.getContentTable().add(label).padTop(20f);
-		buyDialog.getButtonTable().add(t).center();
 	}
 
 

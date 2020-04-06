@@ -12,6 +12,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -28,10 +30,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-
 import com.planes.pc.Planes;
 
 import data.Data;
+import data.FlightPath;
 import sprites.Airport;
 import sprites.Plane;
 
@@ -41,20 +43,32 @@ public class MapScreen implements Screen, InputProcessor{
 	private Planes game;
 	private Plane currentPlane;
 	private Texture map;
-	private ArrayList<Data> airportData;
+	private ArrayList<Data> playerData;
 	private ArrayList<Airport> airports;
+	private ArrayList<Plane> planes;
 	private Airport selectedAirport;
 	private Stage Ui;
+	private Stage PlacePlaneUi;
 	private Stage dialogStage;
 	private Skin skin;
 	private Drawable dialogBackground;
 	private Label moneyLabel;
 	private InputMultiplexer multiplexer;
+	private InputMultiplexer multiplexer2;
 	private BitmapFont font;
 	private LabelStyle style;
 	private boolean placePlaneMode;
 	private float yOffSet = 15, xOffSet = 20;
 	private OrthographicCamera camera;
+	private Dialog buyDialog;
+	private Label label;
+	private ShapeRenderer shape;
+	private ImageButton menuButton;
+	private ImageButton backButton;
+	private ImageButton mapButton;
+	private ImageButton flightsButton;
+	private Image coin;
+	private Image bar;
 
 	//Map dimensions : 3000 x 1910
 	static float WORLD_WIDTH = 3000, WORLD_HEIGHT = 1910; 
@@ -66,14 +80,19 @@ public class MapScreen implements Screen, InputProcessor{
 
 
 
-	public MapScreen(final Planes main, ArrayList<Data> data) {
+	public MapScreen(final Planes main, ArrayList<Data> data) 
+	{
+		
 		this.game = main;
-		this.airportData = data;
+		this.playerData = data;
+		planes = data.get(0).getBoughtPlanes();
 		airports = new ArrayList<Airport>();
+		Plane.airports = airports;
 		placePlaneMode = false;
 
 		//Create the stage(Static UI) elements
 		Ui = new Stage();
+		PlacePlaneUi = new Stage();
 		dialogStage = new Stage();
 		skin = new Skin (Gdx.files.internal("clean-crispy-ui.json"));
 		font = new BitmapFont();
@@ -82,12 +101,14 @@ public class MapScreen implements Screen, InputProcessor{
 		
 		//Initialize input processor for both stage and scene
 		multiplexer = new InputMultiplexer(this, Ui);
+		multiplexer2 = new InputMultiplexer(this, PlacePlaneUi);
 		Gdx.input.setInputProcessor(multiplexer); //Input Processor handles all the input events i.e - mouse and keyboard
 
 		//Camera = self explanatory
 		camera = new OrthographicCamera(WORLD_WIDTH/2, WORLD_HEIGHT/2); 
 		camera.position.set(WORLD_WIDTH/2, WORLD_HEIGHT/2, 0);
 		camera.zoom = 2.0f;
+		
 		
 		//Gets the boundaries
 		getBoundries(); 
@@ -96,28 +117,53 @@ public class MapScreen implements Screen, InputProcessor{
 		map = new Texture("map.png");
 
 		//Generate Airport sprites from the data
-		for(Data a : data) {
+		for(Data a : data) 
+		{
 			if(a.getMoney() == -1) airports.add(a.createAirport());
 		}
 		
+		// Set all owned planes to fly to given path
+		for (Plane a : planes)
+		{	
+			if (a.getLocation() != null)
+			{
+				a.setPosition(a.getLocation().getX(), a.getLocation().getY());
+			}
+		}
 
 		//Menu Button
 		TextureRegionDrawable menuButtonTexture = game.createTextureRegionDrawable("ui/menu_button.png", 100, 100);
-		ImageButton menuButton = new ImageButton(menuButtonTexture, menuButtonTexture.tint(Color.GRAY));
+		menuButton = new ImageButton(menuButtonTexture, menuButtonTexture.tint(Color.GRAY));
 		menuButton.setPosition(Gdx.graphics.getWidth()-100, 0);
-		menuButton.addListener(new ClickListener() {
+		menuButton.addListener(new ClickListener() 
+		{
 			@Override
-			public void clicked(InputEvent event, float x, float y) {
+			public void clicked(InputEvent event, float x, float y) 
+			{
 				game.setPreviousScreen(game.getMapScreen());
 				game.setScreen(game.getMenuScreen());
 			}
 
 		});
 
+		//Create Back Button
+		TextureRegionDrawable BackButtonTexture = game.createTextureRegionDrawable("ui/menu_close.png", 100, 100);
+		backButton = new ImageButton(BackButtonTexture, BackButtonTexture.tint(Color.GRAY));
+		backButton.addListener(new ClickListener() 
+		{
+			@Override
+			public void clicked(InputEvent event, float x, float y) 
+			{
+				game.setScreen(game.getFlightsScreen());
+			}
+
+		});
+		backButton.setPosition(Gdx.graphics.getWidth()-100, 0);
 		//Create Map button
 		TextureRegionDrawable mapButtonTexture = game.createTextureRegionDrawable("ui/map_button.png", 80, 80);
-		ImageButton mapButton = new ImageButton(mapButtonTexture, mapButtonTexture.tint(Color.GRAY));
-		mapButton.addListener(new ClickListener() {
+		mapButton = new ImageButton(mapButtonTexture, mapButtonTexture.tint(Color.GRAY));
+		mapButton.addListener(new ClickListener() 
+		{
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
 				game.setScreen(game.getMapScreen());
@@ -128,10 +174,12 @@ public class MapScreen implements Screen, InputProcessor{
 
 		//Create Flights Button
 		TextureRegionDrawable flightsButtonTexture = game.createTextureRegionDrawable("ui/menu_flights.png", 80, 80);
-		ImageButton flightsButton = new ImageButton(flightsButtonTexture, flightsButtonTexture.tint(Color.GRAY));
-		flightsButton.addListener(new ClickListener() {
+		flightsButton = new ImageButton(flightsButtonTexture, flightsButtonTexture.tint(Color.GRAY));
+		flightsButton.addListener(new ClickListener() 
+		{
 			@Override
-			public void clicked(InputEvent event, float x, float y) {
+			public void clicked(InputEvent event, float x, float y) 
+			{
 				game.setPreviousScreen2(game.getMapScreen());
 				game.setScreen(game.getFlightsScreen());
 			}
@@ -140,7 +188,7 @@ public class MapScreen implements Screen, InputProcessor{
 		flightsButton.setPosition(Gdx.graphics.getWidth()-290, 0);
 
 		//Create Money text/image
-		Image coin = new Image(new Texture("ui/coin.png"));
+		coin = new Image(new Texture("ui/coin.png"));
 		coin.setScale(4.5f);
 		coin.setPosition(10, 0);
 		moneyLabel = new Label(data.get(0).getMoney() + "", new LabelStyle(new BitmapFont(), Color.WHITE));
@@ -148,66 +196,232 @@ public class MapScreen implements Screen, InputProcessor{
 		moneyLabel.setPosition(50, 10);
 		
 		//Initialize bottom bar
-		Image bar = new Image(new Texture("ui/map_dropdown.png"));
+		bar = new Image(new Texture("ui/map_dropdown.png"));
 		bar.setScaleX(15f);
 		bar.setScaleY(5f);
 		bar.setPosition(0, -5);
-
-		//Add all the static stuff to the stage
-		Ui.addActor(bar);
-		Ui.addActor(coin);
-		Ui.addActor(moneyLabel);
-		Ui.addActor(menuButton);
-		Ui.addActor(mapButton);
-		Ui.addActor(flightsButton);
-
-
+		
+		
+		// Dialog
+			buyDialog = new Dialog("", skin);
+			dialogBackground = new TextureRegionDrawable(new TextureRegion(new Texture("ui/NB_dialog.png")));
+			dialogBackground.setMinHeight(300);
+			dialogBackground.setMinWidth(300);
+			buyDialog.setBackground(dialogBackground);
+			TextButton btnYes = new TextButton("Yes", skin);
+			btnYes.addListener(new ClickListener() 
+{
+				@Override
+				public boolean touchDown(InputEvent event, float x, float y,
+						int pointer, int button) 
+				{
+	
+					if(playerData.get(0).getMoney() - selectedAirport.getPrice() >= 0) 
+					{
+						selectedAirport.setBought(true);
+						playerData.get(0).setMoney(playerData.get(0).getMoney()-selectedAirport.getPrice());
+						buyDialog.hide();
+						Gdx.input.setInputProcessor(multiplexer);
+						return true;
+	
+					}
+					else
+					{
+						final Dialog error = new Dialog("", skin);
+						error.setBackground(dialogBackground);
+	
+						Label label2 = new Label("You don't have\n enough money\n to purchase this!", style);
+						label2.setFontScale(2f);
+						label2.setAlignment(Align.center);
+	
+						error.getContentTable().add(label2).padTop(20f);
+	
+						TextButton btnOkay = new TextButton("Okay", skin);
+						btnOkay.addListener(new ClickListener() 
+						{
+							@Override
+							public boolean touchDown(InputEvent event, float x, float y,
+									int pointer, int button) 
+							{
+	
+								error.hide();
+								buyDialog.hide();
+								Gdx.input.setInputProcessor(multiplexer);
+								return true;
+							}
+	
+						});
+						btnOkay.getLabel().setFontScale(1.8f);
+	
+						Table t = new Table();
+						t.add(btnOkay).width(80f).height(80f).pad(5f);
+	
+						error.getButtonTable().add(t).center();
+						error.show(Ui);
+					}
+					return true;
+				}
+	
+			});
+			btnYes.getLabel().setFontScale(1.8f);
+	
+			TextButton btnNo = new TextButton("No", skin);
+			btnNo.addListener(new ClickListener() 
+			{
+				@Override
+				public boolean touchDown(InputEvent event, float x, float y,
+						int pointer, int button) 
+				{
+	
+					buyDialog.hide();
+					Gdx.input.setInputProcessor(multiplexer);
+					return true;
+				}
+	
+			});
+			btnNo.getLabel().setFontScale(1.8f);
+	
+			Table t = new Table();
+			t.add(btnYes).width(60f).height(60f).pad(5f);
+			t.add(btnNo).width(60f).height(60f).pad(5f);
+			buyDialog.getButtonTable().add(t).center();
+			label = new Label("", style);
+			label.setFontScale(2f);
+			label.setAlignment(Align.center);
+			buyDialog.getContentTable().add(label).padTop(20f);
+			
+			shape = new ShapeRenderer();
+			
 	}
 
 
 	//Same as the create() method, place to initialize anything you need
 	@Override
-	public void show() {
-		Gdx.input.setInputProcessor(multiplexer);
+	public void show() 
+	{
+		if(placePlaneMode)
+		{
+			Gdx.input.setInputProcessor(multiplexer2);
+			PlacePlaneUi.addActor(bar);
+			PlacePlaneUi.addActor(coin);
+			PlacePlaneUi.addActor(moneyLabel);
+			PlacePlaneUi.addActor(mapButton);
+			PlacePlaneUi.addActor(flightsButton);
+			PlacePlaneUi.addActor(menuButton);
+			PlacePlaneUi.addActor(backButton);
+		}
+		else
+		{
+			Gdx.input.setInputProcessor(multiplexer);
+			Ui.addActor(bar);
+			Ui.addActor(coin);
+			Ui.addActor(moneyLabel);
+			Ui.addActor(mapButton);
+			Ui.addActor(flightsButton);
+			Ui.addActor(backButton);
+			Ui.addActor(menuButton);
+		}
 	}
 		
 
 	//Renders what we want on the screen
 	@Override
-	public void render(float delta) {
+	public void render(float delta) 
+	{
 		Gdx.gl.glClearColor(.039f, .107f, .219f, 1); //Sets the background color
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); //Clears the screen
 		game.getBatch().setProjectionMatrix(camera.combined);
+		shape.setProjectionMatrix(camera.combined);
 		camera.update();
 		
+		
 		game.getBatch().begin();
-		if(placePlaneMode == false) {
+		
+		// Show all airports
+		if(placePlaneMode == false) 
+		{
 			game.getBatch().draw(map, 0 , 0);
-			for(Airport a : airports) {
+			for(Airport a : airports) 
+			{
 				a.draw(game.getBatch());
 				font.draw(game.getBatch(), a.getName(), a.getX()+ xOffSet, a.getY() + yOffSet);
 			}
 		}
-		else{
+		// Show only the bought airports for placing planes
+		else
+		{
 			game.getBatch().draw(map, 0 , 0);
-			for(Airport a : airports) {
-				if(a.isBought() == true) {
+			for(Airport a : airports) 
+			{
+				if(a.isBought() == true) 
+				{
 					a.draw(game.getBatch());
 					font.draw(game.getBatch(), a.getName(), a.getX()+ xOffSet, a.getY() + yOffSet);
 				}
 			}
 		}
+		
+		
+		// Draw all the planes that are flying
+		for(Plane a : planes)
+		{
+			if(a.isFlying())
+				if (a.getWaypoint() != -1)
+					a.draw(game.getBatch());
+		}
+		
 		game.getBatch().end();
-		moneyLabel.setText(airportData.get(0).getMoney() + "");
-		Ui.draw();
-		Ui.act();
+		
+		// Draw the flight paths
+		for(Plane a : planes)
+		{
+			if(a.isFlying())
+			{
+				if (a.getWaypoint() != -1)
+				{
+					Vector2 previous = a.getPath().get(0).getVector();
+					// Make a line from the plane to the current destination
+					if(!a.getPath().get(a.getWaypoint()).isVisited())
+					{
+					shape.setColor(Color.CYAN);
+					shape.begin(ShapeType.Line);
+				 	shape.line(new Vector2(a.getX(), a.getY()), a.getPath().get(a.getWaypoint()).getVector());
+				 	shape.end();
+					}
+					
+				 	for (FlightPath flight: a.getPath())
+				 	{
+				 		// Draw the path for destinations we aren't already on
+				 		if(a.getPath().get(a.getWaypoint()).getVector() != flight.getVector())
+				 		{
+					 		if (!flight.isVisited())
+					 		{
+					 		shape.setColor(Color.YELLOW);
+					 		shape.begin(ShapeType.Line);
+					 		shape.line(previous, flight.getVector());
+					 		shape.end();
+					 		}
+				 		}
+				 		
+				 		previous = flight.getVector();
+				 	}
+				}
+			}
+	 		
+		}
+		moneyLabel.setText(playerData.get(0).getMoney() + "");
+		if (placePlaneMode)
+		{
+			PlacePlaneUi.draw();
+		}
+		else
+		{
+			Ui.draw();
+		}
 		dialogStage.draw();
 		dialogStage.act();
-
-
 	}
-
-
+	
 	//Used to resize the screen
 	@Override
 	public void resize(int width, int height) {
@@ -232,6 +446,8 @@ public class MapScreen implements Screen, InputProcessor{
 	//Used to dispose of elements, especially textures
 	@Override
 	public void dispose() {
+		shape.dispose();
+		dialogStage.dispose();
 	}
 
 	//Methods for handling input
@@ -255,15 +471,16 @@ public class MapScreen implements Screen, InputProcessor{
 		for(Airport a : airports){
 			if(a.getBoundingRectangle().contains(mouseInWorld2D.x,mouseInWorld2D.y)){
 				if(a.isBought()) {
-
+					
+					// Select airport and go to airport screen
 					if(placePlaneMode == false) {
 						game.getAirportScreen().setAirport(a); //Set the airportScreen to the selected airport
 						game.setScreen(game.getAirportScreen()); //Switch screens
+					// Place Plane in airport
 					}else{
 						game.getAirportScreen().setAirport(a);
 						currentPlane.setLocation(a);
-						//TODO: Debugging
-						System.out.println(currentPlane.getName() + " is now in " + a.getName());
+						game.getAirportScreen().setPlane(currentPlane);
 						game.setScreen(game.getAirportScreen());
 					}
 				}else{
@@ -434,98 +651,8 @@ public class MapScreen implements Screen, InputProcessor{
 	//Creates the aiport buy dialog boxes
 	public void createBuyDialog() {
 		Gdx.input.setInputProcessor(dialogStage);
-		final Dialog buyDialog = new Dialog("", skin);
-		dialogBackground = new TextureRegionDrawable(new TextureRegion(new Texture("ui/NB_dialog.png")));
-		dialogBackground.setMinHeight(300);
-		dialogBackground.setMinWidth(300);
-		buyDialog.setBackground(dialogBackground);
 		
-		TextButton btnYes = new TextButton("Yes", skin);
-		btnYes.addListener(new ClickListener() {
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y,
-					int pointer, int button) {
-
-				if(airportData.get(0).getMoney() - selectedAirport.getPrice() >= 0) {
-					selectedAirport.setBought(true);
-					airportData.get(0).setMoney(airportData.get(0).getMoney()-selectedAirport.getPrice());
-					buyDialog.hide();
-					buyDialog.cancel();
-					buyDialog.remove();    
-					buyDialog.reset();
-					Gdx.input.setInputProcessor(multiplexer);
-					return true;
-
-				}else{
-					final Dialog error = new Dialog("", skin);
-					error.setBackground(dialogBackground);
-
-					Label label2 = new Label("You don't have\n enough money\n to purchase this!", style);
-					label2.setFontScale(2f);
-					label2.setAlignment(Align.center);
-
-					error.getContentTable().add(label2).padTop(20f);
-
-					TextButton btnOkay = new TextButton("Okay", skin);
-					btnOkay.addListener(new ClickListener() {
-						@Override
-						public boolean touchDown(InputEvent event, float x, float y,
-								int pointer, int button) {
-
-							error.hide();
-							error.cancel();
-							error.remove();
-							error.reset();
-							buyDialog.hide();
-							buyDialog.cancel();
-							buyDialog.remove();  
-							buyDialog.reset();
-							Gdx.input.setInputProcessor(multiplexer);
-							return true;
-						}
-
-					});
-					btnOkay.getLabel().setFontScale(1.8f);
-
-					Table t = new Table();
-					t.add(btnOkay).width(80f).height(80f).pad(5f);
-
-					error.getButtonTable().add(t).center();
-					error.show(Ui);
-				}
-				return true;
-			}
-
-		});
-		btnYes.getLabel().setFontScale(1.8f);
-
-		TextButton btnNo = new TextButton("No", skin);
-		btnNo.addListener(new ClickListener() {
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y,
-					int pointer, int button) {
-
-				// Do whatever here for exit button
-				buyDialog.hide();
-				buyDialog.remove();
-				buyDialog.cancel();
-				Gdx.input.setInputProcessor(multiplexer);
-				return true;
-			}
-
-		});
-		btnNo.getLabel().setFontScale(1.8f);
-
-		Table t = new Table();
-		t.add(btnYes).width(60f).height(60f).pad(5f);
-		t.add(btnNo).width(60f).height(60f).pad(5f);
-
-		Label label = new Label("Would you like to buy\n " + selectedAirport.getName() + "\nfor\n $" + selectedAirport.getPrice(), style);
-		label.setFontScale(2f);
-		label.setAlignment(Align.center);
-
-		buyDialog.getContentTable().add(label).padTop(20f);
-		buyDialog.getButtonTable().add(t).center();
+		label.setText("Would you like to buy\n " + selectedAirport.getName() + "\nfor\n $" + selectedAirport.getPrice());
 		buyDialog.show(dialogStage);
 	}
 	

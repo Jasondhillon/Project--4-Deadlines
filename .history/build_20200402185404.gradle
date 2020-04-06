@@ -15,7 +15,7 @@ buildscript {
     dependencies {
         // classpath 'de.richsource.gradle.plugins:gwt-gradle-plugin:1.0.6'
         classpath "gradle.plugin.org.wisepersist:gwt-gradle-plugin:1.0.13"
-        classpath "gradle.plugin.org.gretty:gretty:3.0.2"
+        classpath "gradle.plugin.com.dsvdsv.gradle.plugin:gradle-jetty-plugin:1.5.1"
 
     }
 }
@@ -56,21 +56,21 @@ project(":desktop") {
     }
 }
 
-// project(":html") {
-//     apply plugin: "gwt"
-//     apply plugin: "war"
+project(":html") {
+    apply plugin: "gwt"
+    apply plugin: "war"
 
 
-//     dependencies {
-//         implementation project(":core")
-//         implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
-//         implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
-//         implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-//         implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion:sources"
-//         implementation "com.badlogicgames.gdx:gdx-box2d-gwt:$gdxVersion:sources"
+    dependencies {
+        implementation project(":core")
+        implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
+        implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
+        implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
+        implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion:sources"
+        implementation "com.badlogicgames.gdx:gdx-box2d-gwt:$gdxVersion:sources"
         
-//     }
-// }
+    }
+}
 
 project(":core") {
     apply plugin: "java"
@@ -79,7 +79,7 @@ project(":core") {
     dependencies {
         implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
         implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
-        implementation 'com.github.javafaker:javafaker:1.0.2'
+        
     }
 }
 

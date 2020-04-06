@@ -30,6 +30,7 @@ public class AirportScreen implements Screen{
 	private Planes game;
 	private Plane currentPlane;
 	private Stage Ui;
+	private Stage UiPlane;
 	private ArrayList<Data> data;
 	private OrthographicCamera camera;
 
@@ -48,11 +49,20 @@ public class AirportScreen implements Screen{
 	private Texture building;
 	private Texture seats;
 	private Texture planeTexture;
+	
+	private ImageButton menuButton;
+	private ImageButton mapButton;
+	private ImageButton flyButton;
+	private ImageButton flightsButton;
+	private Image coin;
+	private Image bar;
+	
 
 	public AirportScreen(final Planes game, ArrayList<Data> data) {
 		this.game = game;
 		this.data = data;
 		Ui = new Stage();
+		UiPlane = new Stage();
 
 		//Setup Camera
 		camera = new OrthographicCamera(Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2); 
@@ -61,7 +71,7 @@ public class AirportScreen implements Screen{
 
 		//Menu Button
 		TextureRegionDrawable menuButtonTexture = game.createTextureRegionDrawable("ui/menu_button.png", 100, 100);
-		ImageButton menuButton = new ImageButton(menuButtonTexture, menuButtonTexture.tint(Color.GRAY));
+		menuButton = new ImageButton(menuButtonTexture, menuButtonTexture.tint(Color.GRAY));
 		menuButton.setPosition(Gdx.graphics.getWidth()-100, 0);
 		menuButton.addListener(new ClickListener() {
 			@Override
@@ -74,7 +84,7 @@ public class AirportScreen implements Screen{
 
 		//Create Map button
 		TextureRegionDrawable mapButtonTexture = game.createTextureRegionDrawable("ui/map_button.png", 80, 80);
-		ImageButton mapButton = new ImageButton(mapButtonTexture, mapButtonTexture.tint(Color.GRAY));
+		mapButton = new ImageButton(mapButtonTexture, mapButtonTexture.tint(Color.GRAY));
 		mapButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
@@ -83,10 +93,24 @@ public class AirportScreen implements Screen{
 
 		});
 		mapButton.setPosition(Gdx.graphics.getWidth()-200, 0);
+		
+		//Create Job Button
+		TextureRegionDrawable flyButtonTexture = game.createTextureRegionDrawable("ui/airport_jobs_button.png", 100, 80);
+		flyButton = new ImageButton(flyButtonTexture, flyButtonTexture.tint(Color.GRAY));
+		flyButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				game.setPreviousScreen2(game.getScreen());
+				game.getJobScreen().setJobs(currentPlane, currentPlane.createJobs());
+				game.setScreen(game.getJobScreen());
+			}
+
+		});
+		flyButton.setPosition(0, 40);
 
 		//Create Flights Button
 		TextureRegionDrawable flightsButtonTexture = game.createTextureRegionDrawable("ui/menu_flights.png", 80, 80);
-		ImageButton flightsButton = new ImageButton(flightsButtonTexture, flightsButtonTexture.tint(Color.GRAY));
+		flightsButton = new ImageButton(flightsButtonTexture, flightsButtonTexture.tint(Color.GRAY));
 		flightsButton.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
@@ -104,7 +128,7 @@ public class AirportScreen implements Screen{
 		airportName.setPosition(530, 575);
 
 		//Create Money text/image
-		Image coin = new Image(new Texture("ui/coin.png"));
+		coin = new Image(new Texture("ui/coin.png"));
 		coin.setScale(4.5f);
 		coin.setPosition(10, 0);
 		moneyLabel = new Label(data.get(0).getMoney() + "", new LabelStyle(font, Color.WHITE));
@@ -112,26 +136,42 @@ public class AirportScreen implements Screen{
 		moneyLabel.setPosition(50, 10);
 		
 		//Initialize bottom bar
-		Image bar = new Image(new Texture("ui/map_dropdown.png"));
+		bar = new Image(new Texture("ui/map_dropdown.png"));
 		bar.setScaleX(15f);
 		bar.setScaleY(5f);
 		bar.setPosition(0, -5);
 
-		Ui.addActor(bar);
-		Ui.addActor(coin);
-		Ui.addActor(moneyLabel);
-		Ui.addActor(airportName);
-		Ui.addActor(menuButton);
-		Ui.addActor(mapButton);
-		Ui.addActor(flightsButton);
-		
 		drawPlane = false;
 
 	}
 
 	@Override
 	public void show() {
-		Gdx.input.setInputProcessor(Ui);
+		if(drawPlane)
+		{
+			Gdx.input.setInputProcessor(UiPlane);
+			
+			UiPlane.addActor(bar);
+			UiPlane.addActor(coin);
+			UiPlane.addActor(moneyLabel);
+			UiPlane.addActor(airportName);
+			UiPlane.addActor(flyButton);
+			UiPlane.addActor(menuButton);
+			UiPlane.addActor(mapButton);
+			UiPlane.addActor(flightsButton);
+		}
+		else
+		{
+			Gdx.input.setInputProcessor(Ui);
+			Ui.addActor(bar);
+			Ui.addActor(coin);
+			Ui.addActor(moneyLabel);
+			Ui.addActor(airportName);
+			Ui.addActor(menuButton);
+			Ui.addActor(mapButton);
+			Ui.addActor(flightsButton);
+
+		}
 
 		//Background
 		ZonedDateTime temp = ZonedDateTime.now(ZoneId.of(timeZone));
@@ -161,11 +201,22 @@ public class AirportScreen implements Screen{
 		game.getBatch().begin();
 		game.getBatch().draw(background, Gdx.graphics.getWidth()/2-120, Gdx.graphics.getHeight()/2-100);
 		game.getBatch().draw(tarmac, Gdx.graphics.getWidth()/2-120, Gdx.graphics.getHeight()/2-100);
-		if(drawPlane)game.getBatch().draw(planeTexture, Gdx.graphics.getWidth()/2-60, Gdx.graphics.getHeight()/2-40);
+		if(drawPlane)
+		{	
+			// Adjust position for larger plane
+			if (currentPlane.getNumber() == 1)
+				game.getBatch().draw(planeTexture, Gdx.graphics.getWidth()/2-92, Gdx.graphics.getHeight()/2-67);
+			// Regular position of plane
+			else
+				game.getBatch().draw(planeTexture, Gdx.graphics.getWidth()/2-60, Gdx.graphics.getHeight()/2-40);
+		}
 		game.getBatch().draw(building, Gdx.graphics.getWidth()/2-120, Gdx.graphics.getHeight()/2-87);
 		game.getBatch().draw(seats, Gdx.graphics.getWidth()/2-40, Gdx.graphics.getHeight()/2-55);
 		game.getBatch().end();
-		Ui.draw();
+		if(drawPlane)
+			UiPlane.draw();
+		else
+			Ui.draw();
 	}
 
 	@Override
@@ -187,7 +238,6 @@ public class AirportScreen implements Screen{
 	public void hide() {
 		if(drawPlane){
 			planeTexture.dispose();
-			currentPlane = null;
 			drawPlane = false;
 		}
 	}
@@ -207,5 +257,23 @@ public class AirportScreen implements Screen{
 	public void setPlane(Plane currentPlane) {
 		this.currentPlane = currentPlane;
 		drawPlane = true;
+		planeTexture = new Texture("planes/" + currentPlane.getNumber() + "_base.png");
 	}
+
+	public void setDrawPlane(boolean drawPlane)
+	{
+		this.drawPlane = drawPlane;
+	}
+
+	public Plane getCurrentPlane()
+	{
+		return currentPlane;
+	}
+
+	public boolean isDrawPlane()
+	{
+		return drawPlane;
+	}
+	
+	
 }
